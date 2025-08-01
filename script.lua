@@ -1,79 +1,54 @@
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "ToggleSpawnSwitchGUI"
 
--- Создание Login UI
-local loginGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-loginGui.Name = "LoginUI"
-loginGui.ResetOnSpawn = false
-
-local frame = Instance.new("Frame", loginGui)
-frame.Size = UDim2.new(0, 400, 0, 200)
-frame.Position = UDim2.new(0.5, -200, 0.5, -100)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BackgroundTransparency = 0.3
-frame.BorderSizePixel = 0
-
--- Плавное появление
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 120, 0, 50)
+frame.Position = UDim2.new(0.5, -60, 0.5, -25)
 frame.BackgroundTransparency = 1
-for i = 1, 10 do
-    frame.BackgroundTransparency = 1 - i * 0.07
-    wait(0.02)
-end
 
-local textbox = Instance.new("TextBox", frame)
-textbox.Size = UDim2.new(0.8, 0, 0.3, 0)
-textbox.Position = UDim2.new(0.1, 0, 0.35, 0)
-textbox.PlaceholderText = "Введите код: BRADIKItop"
-textbox.TextScaled = true
+local background = Instance.new("Frame", frame)
+background.Size = UDim2.new(0, 120, 0, 30)
+background.Position = UDim2.new(0, 0, 0.5, -15)
+background.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+background.BorderSizePixel = 0
+background.BackgroundTransparency = 0.4
+background.Name = "SwitchBackground"
 
--- Авторизация
-textbox.FocusLost:Connect(function(enterPressed)
-    if enterPressed and textbox.Text == "BRADIKItop" then
-        loginGui:Destroy()
+local dot = Instance.new("Frame", background)
+dot.Size = UDim2.new(0, 28, 0, 28)
+dot.Position = UDim2.new(0, 1, 0, 1)
+dot.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+dot.BorderSizePixel = 0
+dot.Name = "ToggleDot"
 
-        -- Основной UI
-        local mainGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-        mainGui.Name = "MainUI"
+local toggled = false
 
-        local mainFrame = Instance.new("Frame", mainGui)
-        mainFrame.Size = UDim2.new(0, 350, 0, 250)
-        mainFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
-        mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-        mainFrame.BackgroundTransparency = 0.2
-        mainFrame.BorderSizePixel = 0
+-- Атрибут для активации кастомного спавна
+player:SetAttribute("UseCustomSpawn", false)
 
-        local button = Instance.new("TextButton", mainFrame)
-        button.Size = UDim2.new(0.6, 0, 0.2, 0)
-        button.Position = UDim2.new(0.2, 0, 0.4, 0)
-        button.Text = "SetSpawnLocation"
-        button.TextScaled = true
+background.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        toggled = not toggled
 
-        local spawnPart
+        -- Анимация точки
+        local goal = {}
+        goal.Position = toggled and UDim2.new(0, 91, 0, 1) or UDim2.new(0, 1, 0, 1)
 
-        button.MouseButton1Click:Connect(function()
-            -- Создание полупрозрачного парт
-            if spawnPart then spawnPart:Destroy() end
+        local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        local tween = game:GetService("TweenService"):Create(dot, tweenInfo, goal)
+        tween:Play()
 
-            spawnPart = Instance.new("Part", workspace)
-            spawnPart.Anchored = true
-            spawnPart.CanCollide = false
-            spawnPart.Size = Vector3.new(6, 1, 6)
-            spawnPart.Position = character.PrimaryPart.Position + Vector3.new(0, -3, 0)
-            spawnPart.Transparency = 0.5
-            spawnPart.BrickColor = BrickColor.new("Really black")
-            spawnPart.Name = "CustomSpawn"
-
-            player:SetAttribute("CustomSpawn", spawnPart.Position)
-        end)
-
-        -- Механизм спавна на парт
-        player.CharacterAdded:Connect(function(char)
-            local spawnPos = player:GetAttribute("CustomSpawn")
-            if spawnPos then
-                char:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(spawnPos + Vector3.new(0, 3, 0))
-            end
-        end)
+        player:SetAttribute("UseCustomSpawn", toggled)
+        print("Кастомный спавн:", toggled and "Включён" or "Выключен")
     end
 end)
 
+-- Логика спавна при респавне
+player.CharacterAdded:Connect(function(char)
+    local spawnPos = player:GetAttribute("CustomSpawn")
+    local useCustom = player:GetAttribute("UseCustomSpawn")
+    if spawnPos and useCustom then
+        char:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(spawnPos + Vector3.new(0, 3, 0))
+    end
+end)
