@@ -25,7 +25,7 @@ local Window = Rayfield:CreateWindow({
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
 
-   KeySystem = false, -- Set this to true to use our key system
+   KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
       Title = "✦ rizx TSB panel ✦ | Key ",
       Subtitle = "Key System",
@@ -36,3 +36,6 @@ local Window = Rayfield:CreateWindow({
       Key = {"https://pastebin.com/raw/MJA6t1DB"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
    }
 })
+
+local MainTab = Window:CreateTab("Home", 170940874) -- Title, Image
+local Section = Tab:CreateSection("Halooo")
