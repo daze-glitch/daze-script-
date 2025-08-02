@@ -1,101 +1,155 @@
--- 📦 Загрузка интерфейса Rayfield
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source.lua"))()
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- 🔧 Создание основного окна
 local Window = Rayfield:CreateWindow({
-    Name = "Мой скрипт",
-    LoadingTitle = "Загрузка...",
-    LoadingSubtitle = "Подожди немного 🎮",
+    Name = "✦ rizx TSB panel ✦",
+    Icon = 0,
+    LoadingTitle = "Loading rizx TSB panel",
+    LoadingSubtitle = "by rizx",
+    ShowText = "rizx panel",
+    Theme = "Ocean",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
     ConfigurationSaving = {
         Enabled = true,
-        FileName = "MyScriptConfig"
+        FolderName = nil,
+        FileName = "rizx hub"
     },
     Discord = {
-        Enabled = false
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
     },
-    KeySystem = false
+    KeySystem = true,
+    KeySettings = {
+        Title = "✦ rizx TSB panel ✦ | Key ",
+        Subtitle = "Key System",
+        Note = "get key from our discord server.",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = true,
+        Key = {"https://pastebin.com/raw/MJA6t1DB"}
+    }
 })
 
--- 🗂️ Создание вкладок
-local MainTab = Window:CreateTab("Главная", 4483362458)
-local MiscTab = Window:CreateTab("Misc", 4483362458)
-
--- ⚙️ Переменные
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local spawnBlock = nil
+local CurrentWalkSpeed = 16
 local InfiniteJumpEnabled = false
 local NoClipEnabled = false
 local velocityEnabled = false
-local spawnBlock
 
--- 🚀 Функции на вкладке "Главная"
-MainTab:CreateToggle({
-    Name = "Бесконечный прыжок",
-    CurrentValue = false,
-    Callback = function(Value)
-        InfiniteJumpEnabled = Value
-    end
-})
+-- 🏠 HOME TAB
+local MainTab = Window:CreateTab("Home", 170940874)
+MainTab:CreateSection("Spawn & Utility")
 
-MainTab:CreateToggle({
-    Name = "NoClip",
-    CurrentValue = false,
-    Callback = function(Value)
-        NoClipEnabled = Value
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Velocity",
-    CurrentValue = false,
-    Callback = function(Value)
-        velocityEnabled = Value
-        if velocityEnabled then
-            LocalPlayer.Character.Humanoid.WalkSpeed = 100
-        else
-            LocalPlayer.Character.Humanoid.WalkSpeed = 16
-        end
-    end
-})
-
--- 🧱 Кнопка спавна блока
-MiscTab:CreateButton({
-    Name = "Спавн блока",
+MainTab:CreateButton({
+    Name = "Spawn Respawn Block",
     Callback = function()
-        spawnBlock = Instance.new("Part", workspace)
-        spawnBlock.Size = Vector3.new(5, 1, 5)
-        spawnBlock.Anchored = true
-        spawnBlock.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
-        spawnBlock.BrickColor = BrickColor.new("Bright blue")
-        print("Блок заспавнен")
-    end
-})
+        if not LocalPlayer or not LocalPlayer.Character then return end
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
 
--- 💣 Кнопка удаления всего
-MiscTab:CreateButton({
-    Name = "Удалить скрипт",
-    Callback = function()
-        -- Удаление блока
         if spawnBlock then
             spawnBlock:Destroy()
-            spawnBlock = nil
         end
 
-        -- Отключение флагов
-        InfiniteJumpEnabled = false
-        NoClipEnabled = false
-        velocityEnabled = false
+        spawnBlock = Instance.new("Part")
+        spawnBlock.Size = Vector3.new(6, 1, 6)
+        spawnBlock.Position = hrp.Position - Vector3.new(0, hrp.Size.Y / 2 + 0.5, 0)
+        spawnBlock.Anchored = true
+        spawnBlock.CanCollide = false
+        spawnBlock.Transparency = 0.6
+        spawnBlock.Color = Color3.new(0, 0, 0)
+        spawnBlock.Name = "RespawnBlock"
+        spawnBlock.Parent = workspace
 
-        -- Удаление интерфейса
-        if Window and typeof(Window) == "Instance" then
-            Window:Destroy()
-        end
-
-        -- Возврат скорости персонажа
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.WalkSpeed = 16
-        end
-
-        print("Скрипт и интерфейс удалены успешно 👌")
-    end
+        hookRespawn(LocalPlayer)
+    end,
 })
+
+MainTab:CreateButton({
+    Name = "Toggle NoClip",
+    Callback = function()
+        NoClipEnabled = not NoClipEnabled
+    end,
+})
+
+RunService.Stepped:Connect(function()
+    if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+function hookRespawn(player)
+    player.CharacterAdded:Connect(function(character)
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        if spawnBlock then
+            hrp.CFrame = spawnBlock.CFrame + Vector3.new(0, 2, 0)
+        end
+
+        local hum = character:WaitForChild("Humanoid")
+        hum.WalkSpeed = CurrentWalkSpeed
+    end)
+end
+
+-- 🛠️ MISC TAB
+local MiscTab = Window:CreateTab("Misc", 170940874)
+MiscTab:CreateSection("Movement & Game")
+
+MiscTab:CreateButton({
+    Name = "Toggle Infinite Jump",
+    Callback = function()
+        InfiniteJumpEnabled = not InfiniteJumpEnabled
+    end,
+})
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+MiscTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 100},
+    Increment = 1,
+    Suffix = "speed",
+    CurrentValue = CurrentWalkSpeed,
+    Flag = "WalkSpeedSlider",
+    Callback = function(Value)
+        CurrentWalkSpeed = Value
+        if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end
+    end,
+})
+
+MiscTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end,
+})
+
+MiscTab:CreateButton({
+    Name = "Velocity Dash (Anti-Speed Reset)",
+    Callback = function()
+        velocityEnabled = not velocityEnabled
+    end,
+})
+
+RunService.RenderStepped:Connect(function()
+    if velocityEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        local moveDirection = LocalPlayer.Character.Humanoid.MoveDirection
+        hrp.Velocity = moveDirection * 50
+    end
+end)
