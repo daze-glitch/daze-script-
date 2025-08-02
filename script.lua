@@ -34,12 +34,10 @@ local Window = Rayfield:CreateWindow({
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
 local spawnBlock = nil
 local CurrentWalkSpeed = 16
 local InfiniteJumpEnabled = false
 local NoClipEnabled = false
-local velocityEnabled = false
 
 -- 🏠 HOME TAB
 local MainTab = Window:CreateTab("Home", 170940874)
@@ -74,18 +72,17 @@ MainTab:CreateButton({
     Name = "Toggle NoClip",
     Callback = function()
         NoClipEnabled = not NoClipEnabled
+        game:GetService("RunService").Stepped:Connect(function()
+            if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
     end,
 })
-
-RunService.Stepped:Connect(function()
-    if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
 
 function hookRespawn(player)
     player.CharacterAdded:Connect(function(character)
@@ -101,20 +98,21 @@ end
 
 -- 🛠️ MISC TAB
 local MiscTab = Window:CreateTab("Misc", 170940874)
-MiscTab:CreateSection("Movement & Game")
+MiscTab:CreateSection("Movement & System")
 
 MiscTab:CreateButton({
     Name = "Toggle Infinite Jump",
     Callback = function()
         InfiniteJumpEnabled = not InfiniteJumpEnabled
+        local UIS = game:GetService("UserInputService")
+
+        UIS.JumpRequest:Connect(function()
+            if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
     end,
 })
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
 
 MiscTab:CreateSlider({
     Name = "WalkSpeed",
@@ -138,18 +136,3 @@ MiscTab:CreateButton({
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
     end,
 })
-
-MiscTab:CreateButton({
-    Name = "Velocity Dash (Anti-Speed Reset)",
-    Callback = function()
-        velocityEnabled = not velocityEnabled
-    end,
-})
-
-RunService.RenderStepped:Connect(function()
-    if velocityEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        local moveDirection = LocalPlayer.Character.Humanoid.MoveDirection
-        hrp.Velocity = moveDirection * 50
-    end
-end)
