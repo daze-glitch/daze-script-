@@ -68,3 +68,41 @@ function hookCharacterRespawn(player)
         hrp.CFrame = spawnBlock.CFrame + Vector3.new(0, 2, 0)
     end)
 end
+
+local MiscTab = Window:CreateTab("Misc", 170940874)
+local MiscSection = MiscTab:CreateSection("Movement")
+
+-- Кнопка бесконечного прыжка
+local InfiniteJumpEnabled = false
+
+local InfiniteJumpButton = MiscTab:CreateButton({
+    Name = "Infinite Jump",
+    Callback = function()
+        InfiniteJumpEnabled = not InfiniteJumpEnabled
+        local LocalPlayer = game:GetService("Players").LocalPlayer
+        local UserInputService = game:GetService("UserInputService")
+
+        UserInputService.JumpRequest:Connect(function()
+            if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+    end,
+})
+
+-- Слайдер скорости ходьбы
+local WalkSpeedSlider = MiscTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 100}, -- стандартная скорость = 16
+   Increment = 1,
+   Suffix = "speed",
+   CurrentValue = 16,
+   Flag = "WalkSpeedSlider",
+   Callback = function(Value)
+      local player = game:GetService("Players").LocalPlayer
+      if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+         player.Character.Humanoid.WalkSpeed = Value
+      end
+   end,
+})
+
