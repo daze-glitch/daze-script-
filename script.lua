@@ -68,22 +68,6 @@ MainTab:CreateButton({
     end,
 })
 
-MainTab:CreateButton({
-    Name = "Toggle NoClip",
-    Callback = function()
-        NoClipEnabled = not NoClipEnabled
-        game:GetService("RunService").Stepped:Connect(function()
-            if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
-                for _, part in pairs(LocalPlayer.Character:GetChildren()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end)
-    end,
-})
-
 function hookRespawn(player)
     player.CharacterAdded:Connect(function(character)
         local hrp = character:WaitForChild("HumanoidRootPart")
@@ -100,19 +84,39 @@ end
 local MiscTab = Window:CreateTab("Misc", 170940874)
 MiscTab:CreateSection("Movement & System")
 
-MiscTab:CreateButton({
-    Name = "Toggle Infinite Jump",
-    Callback = function()
-        InfiniteJumpEnabled = not InfiniteJumpEnabled
-        local UIS = game:GetService("UserInputService")
-
-        UIS.JumpRequest:Connect(function()
-            if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end)
+MiscTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJumpToggle",
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
     end,
 })
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+MiscTab:CreateToggle({
+    Name = "NoClip",
+    CurrentValue = false,
+    Flag = "NoClipToggle",
+    Callback = function(Value)
+        NoClipEnabled = Value
+    end,
+})
+
+game:GetService("RunService").Stepped:Connect(function()
+    if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
 
 MiscTab:CreateSlider({
     Name = "WalkSpeed",
