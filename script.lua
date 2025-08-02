@@ -1,40 +1,38 @@
-if game.PlaceId == 10449761463 then
-
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Rayfield Example Window",
+   Name = "✦ rizx TSB panel ✦",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "✧ rizx TSB panel ✧",
+   LoadingTitle = "Loading rizx TSB panel",
    LoadingSubtitle = "by rizx",
-   ShowText = "✧ rizx TSB panel ✧", -- for mobile users to unhide rayfield, change if you'd like
+   ShowText = "rizx panel", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
-   ToggleUIKeybind = "J", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
 
    ConfigurationSaving = {
-      Enabled = false,
+      Enabled = true,
       FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "✧ rizx hub ✧"
+      FileName = "rizx hub"
    },
 
    Discord = {
       Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "https://lootdest.org/s?Co4CC6l1", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = false -- Set this to false to make them join the discord every time they load it up
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
 
-   KeySystem = true, -- Set this to true to use our key system
+   KeySystem = false, -- Set this to true to use our key system
    KeySettings = {
-      Title = "✦ rizx TSB panel ✦ | Key",
+      Title = "✦ rizx TSB panel ✦ | Key ",
       Subtitle = "Key System",
-      Note = "hello", -- Use this to tell the user how to get a key
+      Note = "get key from the link ", -- Use this to tell the user how to get a key
       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
       SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
       GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"https://lootdest.org/s?Co4CC6l1"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+      Key = {"https://pastebin.com/raw/MJA6t1DB"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
    }
 })
