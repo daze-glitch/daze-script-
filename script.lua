@@ -8,17 +8,10 @@ local Window = Rayfield:CreateWindow({
     ShowText = "rizx panel",
     Theme = "Ocean",
     ToggleUIKeybind = "K",
-    DisableRayfieldPrompts = false,
-    DisableBuildWarnings = false,
     ConfigurationSaving = {
         Enabled = true,
         FolderName = nil,
         FileName = "rizx hub"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "noinvitelink",
-        RememberJoins = true
     },
     KeySystem = true,
     KeySettings = {
@@ -34,10 +27,17 @@ local Window = Rayfield:CreateWindow({
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+
 local spawnBlock = nil
 local CurrentWalkSpeed = 16
+
 local InfiniteJumpEnabled = false
 local NoClipEnabled = false
+local NoClipConnection = nil
+local JumpConnection = nil
 
 -- 🏠 HOME TAB
 local MainTab = Window:CreateTab("Home", 170940874)
@@ -46,13 +46,11 @@ MainTab:CreateSection("Spawn & Utility")
 MainTab:CreateButton({
     Name = "Spawn Respawn Block",
     Callback = function()
-        if not LocalPlayer or not LocalPlayer.Character then return end
+        if not LocalPlayer.Character then return end
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
 
-        if spawnBlock then
-            spawnBlock:Destroy()
-        end
+        if spawnBlock then spawnBlock:Destroy() end
 
         spawnBlock = Instance.new("Part")
         spawnBlock.Size = Vector3.new(6, 1, 6)
@@ -65,6 +63,16 @@ MainTab:CreateButton({
         spawnBlock.Parent = workspace
 
         hookRespawn(LocalPlayer)
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "Delete Respawn Block",
+    Callback = function()
+        if spawnBlock then
+            spawnBlock:Destroy()
+            spawnBlock = nil
+        end
     end,
 })
 
@@ -90,14 +98,21 @@ MiscTab:CreateToggle({
     Flag = "InfiniteJumpToggle",
     Callback = function(Value)
         InfiniteJumpEnabled = Value
+
+        if JumpConnection then
+            JumpConnection:Disconnect()
+            JumpConnection = nil
+        end
+
+        if Value then
+            JumpConnection = UserInputService.JumpRequest:Connect(function()
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                    LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        end
     end,
 })
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfiniteJumpEnabled and LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
 
 MiscTab:CreateToggle({
     Name = "NoClip",
@@ -105,18 +120,25 @@ MiscTab:CreateToggle({
     Flag = "NoClipToggle",
     Callback = function(Value)
         NoClipEnabled = Value
+
+        if NoClipConnection then
+            NoClipConnection:Disconnect()
+            NoClipConnection = nil
+        end
+
+        if Value then
+            NoClipConnection = RunService.Stepped:Connect(function()
+                if LocalPlayer.Character then
+                    for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        end
     end,
 })
-
-game:GetService("RunService").Stepped:Connect(function()
-    if NoClipEnabled and LocalPlayer and LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
 
 MiscTab:CreateSlider({
     Name = "WalkSpeed",
@@ -127,7 +149,7 @@ MiscTab:CreateSlider({
     Flag = "WalkSpeedSlider",
     Callback = function(Value)
         CurrentWalkSpeed = Value
-        if LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.WalkSpeed = Value
         end
     end,
@@ -136,7 +158,6 @@ MiscTab:CreateSlider({
 MiscTab:CreateButton({
     Name = "Rejoin Server",
     Callback = function()
-        local TeleportService = game:GetService("TeleportService")
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
     end,
 })
